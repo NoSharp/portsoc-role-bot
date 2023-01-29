@@ -23,15 +23,16 @@ client.on(Events.InteractionCreate, async (interaction: Interaction)=>{
 
   interaction = interaction as ChatInputCommandInteraction;
 
-  const targetCommandName = interaction.command?.name ?? "";
+  const targetCommandName = interaction.commandName;
   const command = commands.get(targetCommandName);
   if(command == null){
-    BotLog.debug(`Client attempted to request: ${targetCommandName} however it was not found.`);
+    BotLog.warn(`Client attempted to request: ${targetCommandName} however it was not found.`);
     return;
   }
 
   try{
     await command.execute(interaction);
+    BotLog.debug(`${targetCommandName} Interaction handled.`);
   }catch(err){
     BotLog.error(`Error executing: ${targetCommandName}`);
     BotLog.error(err);
