@@ -1,11 +1,45 @@
-import {Client, GatewayIntentBits} from "discord.js";
+import {ChatInputCommandInteraction, Client, Collection, Events, GatewayIntentBits, Interaction} from "discord.js";
+import { RegisteredSlashCommand } from "./commands/regsitered_slash_command";
+import { getRegisteredCommands } from "./commands/utils";
 import { getBotToken } from "./config/bot";
 import { BotLog } from "./log";
 
 const client = new Client({ intents: [GatewayIntentBits.GuildMembers] });
+let commands : Collection<string, RegisteredSlashCommand> | undefined;
 
-client.on('ready', ()=>{
-  BotLog.info('Bot connected to discord.');
+client.on(Events.ClientReady, ()=>{
+  BotLog.info("Bot connected to discord.");
 });
 
-client.login(getBotToken());
+
+// Ported partially from the Discord.JS docs' command handler.
+client.on(Events.InteractionCreate, async (interaction: Interaction)=>{
+  if(!interaction.isChatInputCommand()) return;
+
+  if(commands == null){
+    BotLog.error("Slash Commands are not registered, interaction failed.");
+    return;
+  }
+
+  interaction = interaction as ChatInputCommandInteraction;
+
+  const targetCommandName = interaction.command?.name ?? "";
+  const command = commands.get(targetCommandName);
+  if(command == null){
+    BotLog.debug(`Client attempted to request: ${targetCommandName} however it was not found.`);
+    return;
+  }
+
+  try{
+    await command.execute(interaction);
+  }catch(err){
+    BotLog.error(`Error executing: ${targetCommandName}`);
+    BotLog.error(err);
+  }
+
+});
+
+(async()=>{
+  commands = await getRegisteredCommands();
+  client.login(getBotToken());
+})();
