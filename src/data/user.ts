@@ -6,9 +6,6 @@ export interface User {
   roles: string[]
 }
 
-export async function getUser(): Promise<User> {
-  return {
-    upNumber: 0,
-    roles: [],
-  };
+export async function getUser(upNumber: number): Promise<User> {
+  throw new Error('Unimplemented.' + upNumber);
 }
