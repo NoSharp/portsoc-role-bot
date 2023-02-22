@@ -1,0 +1,1 @@
+Each file in here, must export generic functions, and abstract the data storage logic away from the business layer.
